@@ -55,9 +55,9 @@ graph TD
     end
     
     subgraph Server Processing
-    B --> H[Image Processing]
-    B --> I[ML Inference]
-    B --> J[Data Storage]
+    B --> I[Image Processing]
+    B --> J[ML Inference]
+    B --> K[Data Storage]
     end
 ```
 
