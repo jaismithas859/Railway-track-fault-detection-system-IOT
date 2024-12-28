@@ -95,22 +95,22 @@ graph TD
 
 ### Backend Setup
 
-# Navigate to backend directory
+- Navigate to backend directory
 `cd backend`
 
-# Create virtual environment
+- Create virtual environment
 `python -m venv venv`
 
-# Activate virtual environment
+- Activate virtual environment
 ```
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 ```
 
-# Install dependencies
+- Install dependencies
 `pip install -r requirements.txt`
 
-# Start server
+- Start server
 `python server.py`
 
 ## 🔌 API Documentation
