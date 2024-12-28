@@ -84,13 +84,13 @@ graph TD
 
 ### Frontend Setup
 
-Clone repository
+- Clone repository
 `git clone https://github.com/xRiddin/Railway-track-fault-detection-system-IOT.git`
-Navigate to frontend directory
+- Navigate to frontend directory
 `cd frontend`
-Install dependencies
+- Install dependencies
 `npm install`
-Start development server
+- Start development server
 `npm start`
 
 ### Backend Setup
