@@ -40,7 +40,7 @@ IMG_HEIGHT = 299  # Xception required input size
 IMG_WIDTH = 299
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'railmodel.h5')
+MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'railmodel.keras')
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
@@ -132,7 +132,7 @@ def predict_crack(image_path):
         img_array = img_array / 255.0  # Normalize pixel values
         prediction = model.predict(img_array)
         print(prediction)
-        if prediction[0][0] < 0.5:
+        if prediction[0][0] < 0.53:
             is_crack = True
             #  IMG_20201114_102417.jpg
             print("Defective")
