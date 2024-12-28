@@ -48,9 +48,10 @@ graph TD
     D[ML Model] -->|Predictions| B
     
     subgraph Robot Components
-    A --> E[Camera Module]
-    A --> F[Radar Sensor]
-    A --> G[Motion Control]
+    A -->|MQTT| E[Camera Module]
+    A -->|MQTT| F[Radar Sensor]
+    A -->|MQTT| G[Motion Control]
+    A -->|MQTT| H[Crack Sensor]
     end
     
     subgraph Server Processing
