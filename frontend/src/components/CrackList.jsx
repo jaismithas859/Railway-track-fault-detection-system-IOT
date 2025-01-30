@@ -9,21 +9,38 @@ const ImageDisplay = ({ imageUrl }) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        let isActive = true; // For cleanup/prevent memory leaks
+
         const loadImage = async () => {
+            // Skip if we already have the same image loaded
+            if (localImageUrl && localImageUrl.includes(imageUrl)) {
+                return;
+            }
+
             try {
                 setLoading(true);
                 const url = await downloadImage(imageUrl);
-                if (url) {
-                    setLocalImageUrl(url);
-                    setError(null);
-                } else {
-                    setError('Failed to load image');
+                if (isActive) {
+                    if (url) {
+                        // Cleanup previous URL before setting new one
+                        if (localImageUrl) {
+                            URL.revokeObjectURL(localImageUrl);
+                        }
+                        setLocalImageUrl(url);
+                        setError(null);
+                    } else {
+                        setError('Failed to load image');
+                    }
                 }
             } catch (err) {
-                setError('Error loading image');
-                console.error(err);
+                if (isActive) {
+                    setError('Error loading image');
+                    console.error(err);
+                }
             } finally {
-                setLoading(false);
+                if (isActive) {
+                    setLoading(false);
+                }
             }
         };
 
@@ -31,13 +48,14 @@ const ImageDisplay = ({ imageUrl }) => {
             loadImage();
         }
 
-        // Cleanup function to revoke object URL
+        // Cleanup function
         return () => {
+            isActive = false;
             if (localImageUrl) {
                 URL.revokeObjectURL(localImageUrl);
             }
         };
-    }, [imageUrl]);
+    }, [imageUrl]); // Remove localImageUrl from dependencies
 
     if (loading) {
         return (
@@ -115,8 +133,8 @@ const CrackList = ({ crackDetections }) => {
                             secondary={`Location: ${crack.location.lat}, ${crack.location.lng} | Severity: ${crack.status.severity}`}
                         />
                         {crack.img && (
-                                    <ImageDisplay imageUrl={crack.img} />
-                                )}
+                            <ImageDisplay imageUrl={crack.img} />
+                        )}
                     </ListItem>
                 ))}
             </List>

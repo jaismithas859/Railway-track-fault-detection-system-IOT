@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, send_file
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
+import time
 import socketio
 import requests
 from tensorflow import keras
@@ -33,7 +34,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Initialize Socket.IO client for Raspberry Pi connection
 
-RASPBERRY_PI_URL = 'http://192.168.188.239:5000'
+RASPBERRY_PI_URL = 'http://192.168.186.239:5000'
 
 
 IMG_HEIGHT = 299  # Xception required input size
@@ -189,7 +190,36 @@ def upload_file():
 def uploaded_file(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-
+@app.route('/proxy/image/<path:filename>')
+def proxy_image(filename):
+    try:
+        # Clean up the filename by removing any URL components
+        clean_filename = filename.split('/')[-1]  # Get the last part of the path
+        
+        # Remove any remaining URL parameters or fragments
+        clean_filename = clean_filename.split('?')[0].split('#')[0]
+        
+        # Construct the clean URL for the image request
+        url = f"{RASPBERRY_PI_URL}/images/detected_cracks/{clean_filename}"
+        
+        print(f"Requesting image from: {url}")  # Debug log
+        
+        # Make the GET request to the Raspberry Pi server
+        response = requests.get(url, stream=True)
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Forward the image directly to the client
+            return send_file(
+                response.raw,
+                mimetype=response.headers['content-type'],
+                as_attachment=False
+            )
+        else:
+            return jsonify({"error": "Failed to retrieve image"}), response.status_code
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Socket events for browser clients
 @socketio.on('connect')
@@ -200,16 +230,41 @@ def handle_connect():
 def handle_disconnect():
     print('Browser client disconnected')
 
-def connect_to_raspberry_pi():
-    try:
-        pi_sio.connect(RASPBERRY_PI_URL)
-        socketio.emit('connected', {'status': 'Connected'})
-    except Exception as e:
-        socketio.emit('connected', {'status': 'Disconnected'})
-        print(f"Failed to connect to Raspberry Pi: {e}")
+
+
+def connect_to_raspberry_pi(max_retries=3, initial_delay=1):
+    attempt = 0
+    delay = initial_delay
+    
+    while attempt < max_retries:
+        try:
+            pi_sio.connect(RASPBERRY_PI_URL)
+            socketio.emit('connected', {
+                'status': 'Connected',
+                'attempt': attempt + 1
+            })
+            return True
+            
+        except Exception as e:
+            attempt += 1
+            if attempt < max_retries:
+                socketio.emit('connected', {
+                    'status': f'Connection attempt {attempt} failed. Retrying in {delay} seconds...'
+                })
+                print(f"Failed attempt {attempt}: {e}. Retrying in {delay} seconds...")
+                time.sleep(delay)
+                delay *= 2  # Exponential backoff
+            else:
+                socketio.emit('connected', {
+                    'status': 'Disconnected',
+                    'error': str(e)
+                })
+                print(f"Failed to connect after {max_retries} attempts: {e}")
+                return False
 
 if __name__ == '__main__':
     # Connect to Raspberry Pi
+    
     connect_to_raspberry_pi()
     
     # Start Flask server

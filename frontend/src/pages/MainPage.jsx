@@ -35,18 +35,23 @@ function MainPage() {
 
     const addNewDetection = (detection) => {
         setCrackDetections(prev => {
+            // Format the image URL to use our proxy endpoint
+            const formattedDetection = {
+                ...detection,
+                img: `http://localhost:8000/proxy/image/${detection.img}` // Use proxy for Pi images
+            };
+
             // Check if detection already exists
             const exists = prev.some(crack => 
-                crack.ts === detection.ts &&
-                crack.location.lat === detection.location.lat &&
-                crack.location.lng === detection.location.lng &&
-                crack.img === detection.img &&
-                crack.status.severity === detection.status.severity
-
+                crack.ts === formattedDetection.ts &&
+                crack.location.lat === formattedDetection.location.lat &&
+                crack.location.lng === formattedDetection.location.lng &&
+                crack.img === formattedDetection.img &&
+                crack.status.severity === formattedDetection.status.severity
             );
 
             if (!exists) {
-                return [detection, ...prev];
+                return [formattedDetection, ...prev];
             }
             return prev;
         });
