@@ -162,5 +162,5 @@ gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 server:a
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-*This project was developed as part of the final year engineering project at my University , 2025.*
+*This project was developed as part of the final year engineering project at my University as part of team, 2025.*
 
